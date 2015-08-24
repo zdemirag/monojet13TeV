@@ -1,0 +1,18 @@
+Functionality:
+-------------
+Figure out how these flat trees are made
+
+Store the fits to Zll/Wlv and Bkg, in control regions
+then take the ratio of these fits. 
+
+Of you can do this bin by bin as well. Try that too
+do both of the plots..
+
+Make a table friendly yield print out
+
+Make the gen level plots for Z and W.
+
+Style:
+-----
+Make the plot_pull function better, avoid repetition
+Make script take in input arguments
