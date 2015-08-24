@@ -1,12 +1,17 @@
 # Monojet analysis 13TeV studies
 
-At the moment this is a copy of 8 TeV studies with some minor changes. All scripts to be updated.
+This directory holds the skimmer & slimmer code (slimmer/monojet.C) and the selection macro
+(makePlots.py). Its usage is briefly explained below.
 
-```
-input is bambu files + slimmer / skimmer
-```
+The skimmer input is a nero file (preferablly from bambu). This code will drop the unnecessary
+branches, and add an other tree with some newly calculated information for the analysis.
+This will also replace some of the branches in the events tree depending which control region
+we would like to check.
 
-If the bambu input changes, the slimmer and skimmer will have to change (at least the .h file)
+In the future, this code can also be used to calculate shifted / smeared collection for systematic
+uncertainty calculations.
+
+Note that, if the input file format changes, the slimmer and skimmer will have to change (at least the .h file)
 This is kind of annoying, might want to make it more independent of the version somehow..
 At the current implementation it is a TSelector. you will have to run it in root, so after
 doing root -l do:
@@ -18,9 +23,17 @@ TChain* fChain = new TChain("nero/events")
 fChain->Add("nero_dy.root");
 fChain->Process("monojet")
 ```
-WRITE A WRAPPER AROUND IT!
+WRITE A WRAPPER AROUND IT! ALSO TEST CONDOR SUBMISSION AND BATCH SUBMISSION
+
+
+The selection macro is the makePlots.py At the end of this script you can specify the variable you would like to 
+draw and also the channel (signal or the control regions or even all). selection.py script will hold the different
+selection to be called for each channel. This script relies on a simple TDraw. The weights (lumi, mc weight, etc)
+are calculated on the fly. type tree created by the slimmer is added as a friend to the events tree (this is done
+in LoadData.py).
 
 To run the selector and plotter do:
+
 ```
 ./makePlots.py -b -q -l
 ```
