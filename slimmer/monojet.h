@@ -255,7 +255,7 @@ public :
    virtual void    Terminate();
    float deltaR(TLorentzVector *a, TLorentzVector *b);
    float deltaPhi(float phi1, float phi2);
-
+   float transverseMass(float lepPt, float lepPhi, float met,  float metPhi);
    ClassDef(monojet,0);
 };
 

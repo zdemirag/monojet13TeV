@@ -9,11 +9,6 @@
 using namespace std;
 
 float dR_cut = 0.4;
-float uPar = -9999. ; float uPerp = -9999.;
-int n_tightlep = 0;
-TBranch *bUPar;
-TBranch *bUPerp;
-TBranch *bntightlep;
 
 void monojet::Begin(TTree *tree)
 {
@@ -53,13 +48,10 @@ void monojet::Begin(TTree *tree)
    tree->SetBranchStatus("tauP4",1);
    tree->SetBranchStatus("tauId",1);
    tree->SetBranchStatus("tauIso",1);
+   tree->SetBranchStatus("mcWeight",1);   
+   tree->SetBranchStatus("triggerFired",1);
 
    eventstree = tree->CloneTree(0);
-
-   bUPar  = eventstree->Branch("uPar" ,&uPar ,"uPar/F");
-   bUPerp = eventstree->Branch("uPerp",&uPerp,"uPerp/F");
-
-   bntightlep = eventstree->Branch("n_tightlep",&n_tightlep,"n_tightlep/I");
 
    //Setting up new tree
    tm = new TreeManager("type", "Monojet signal Tree" /*, histoFile*/);
@@ -68,6 +60,10 @@ void monojet::Begin(TTree *tree)
    tm->AddVar("lumi","int");
    tm->AddVar("event","int");
    tm->AddVar("event_type","int");
+   tm->AddVar("upar","float");
+   tm->AddVar("uperp","float");
+   tm->AddVar("mt","float");
+   tm->AddVar("n_tightlep","int");
 
    tm->InitVars();
     
@@ -88,7 +84,7 @@ Bool_t monojet::Process(Long64_t entry)
     GetEntry(entry);
 
     if( entry % 5000 == 0 ) cout << "Processing event number: " << entry << endl;
-    cout << "Processing event number: " << entry << endl;
+    //cout << "Processing event number: " << entry << endl;
 
     // To make the processing fast, apply a very looose selection
     if (((TLorentzVector*)((*metP4)[0]))->Pt() < 40. or jetP4->GetEntries() < 1) return kTRUE;
@@ -119,7 +115,7 @@ Bool_t monojet::Process(Long64_t entry)
     std::vector<float>  tauIso_clean;
     tauIso_clean.clear();
 
-    n_tightlep = 0;
+    int n_tightlep = 0;
 
     // ********* Leptons ********** //
     for(int lepton = 0; lepton < lepP4->GetEntries(); lepton++){
@@ -133,8 +129,6 @@ Bool_t monojet::Process(Long64_t entry)
             n_tightlep +=1;
             new ( (*tightLep)[tightLep->GetEntriesFast()]) TLorentzVector(Lepton->Px(), Lepton->Py(), Lepton->Pz(), Lepton->Energy());            
             
-            //FILL FAKEMET
-            
             //check overlap with jets
             for(int j = 0; j < jetP4->GetEntries(); j++){
                 TLorentzVector* Jet = (TLorentzVector*) jetP4->At(j);
@@ -146,7 +140,6 @@ Bool_t monojet::Process(Long64_t entry)
                     //jetPuId_clean.push_back((*jetPuId)[j]);
                 }
             }
-
             //check overlap with taus
             for(int tau = 0; tau < tauP4->GetEntries(); tau++){
                 TLorentzVector* Tau = (TLorentzVector*) tauP4->At(tau);
@@ -158,27 +151,27 @@ Bool_t monojet::Process(Long64_t entry)
         } // tight lepton selection
     }//lepton loop
 
-    bntightlep->Fill();
+    tm->SetValue("n_tightlep",n_tightlep);
+    
+    TLorentzVector fakeMET;
 
     // Z Selection
     TLorentzVector Z;
     if(lepP4->GetEntries() == 2 && n_tightlep > 0){
         if (((*lepPdgId)[0]+(*lepPdgId)[1])==0 ){
             Z = *((TLorentzVector*)((*lepP4)[0])) + *((TLorentzVector*)((*lepP4)[1])); 
+	    fakeMET = *((TLorentzVector*)((*metP4)[0])) + Z;
         }
     }    
 
+    float MT = 0.0;
     //// W Selection                                                                         
-    //if(lepP4->GetEntries() == 1 && n_tightlep == 1){
-    //    MT = input_tree.lepP4[0] + metP4;
-    //}
+    if(lepP4->GetEntries() == 1 && n_tightlep == 1){
+      fakeMET = *((TLorentzVector*)((*metP4)[0])) + *((TLorentzVector*)((*lepP4)[0])) ;
+      MT = transverseMass( ((TLorentzVector*)((*lepP4)[0]))->Pt(), ((TLorentzVector*)((*lepP4)[0]))->Phi(), ((TLorentzVector*)((*metP4)[0]))->Pt(), ((TLorentzVector*)((*metP4)[0]))->Phi());
+	}
     
-
-    //std::cout << "tightLep PT: " << ((TLorentzVector*)((*tightLep)[0]))->Pt()   << std::endl;
-
-    std::cout << "Tight Lepton count: " << tightLep->GetEntries() << std::endl;
-    std::cout << "Clean Jet count: " << cleanJet->GetEntries() << std::endl;
-    std::cout << "Clean Tau count: " << cleanTau->GetEntries() << std::endl;
+    tm->SetValue("mt",MT);    
 
     // ********* Jets ********** //
     for(int jet = 0; jet < jetP4->GetEntries(); jet++){
@@ -192,6 +185,7 @@ Bool_t monojet::Process(Long64_t entry)
     // and the recoil vectors (for Z and Photon)
       
     TLorentzVector Recoil(-9999.,-9999.,-9999.,-9999);
+    float uPar = -9999. ; float uPerp = -9999.;
 
     if(Z.Pt() > 0){
         Recoil = *((TLorentzVector*)((*metP4)[0])) + Z;
@@ -201,26 +195,30 @@ Bool_t monojet::Process(Long64_t entry)
         else uPar = Recoil.Px() + Z.Pt();
         uPerp = Recoil.Py(); 
     }
-    bUPar->Fill();
-    bUPerp->Fill();
-   
+
+    tm->SetValue("uperp",uPerp);    
+    tm->SetValue("upar",uPar);    
+
     // Decide on the type of the event and fill the
     // type tree
 
     int type_event = -1;
-    
+
+
     // forcing all regions to be orthogonal wrt to each other
     if (((TLorentzVector*)((*metP4)[0]))->Pt() > 100. && 
         jetP4->GetEntries() > 0 && lepP4->GetEntries() == 0) type_event=0;
-    if (lepP4->GetEntries() == 1 && (*lepTightId)[0] == 1) type_event=1;
-    if (lepP4->GetEntries() == 2 && ((*lepTightId)[0] == 1 || (*lepTightId)[1] == 1 )) type_event=2;
-    
+    if (lepP4->GetEntriesFast() == 1) type_event=1; //&& (*lepTightId)[0] == 1) type_event=1;
+    if (lepP4->GetEntriesFast() == 2) type_event=2; //&& ((*lepTightId)[0] == 1 || (*lepTightId)[1] == 1 )) type_event=2;
+   
+    if (  lepP4->GetEntriesFast() == 2 && type_event!=2 ) std::cout << "WTF??" << std::endl;
     tm->SetValue("event_type",type_event);
     
     // Now replace all the needed collections based
     // on the type
     
-    if (type_event ==1 || type_event==2){
+    if (type_event ==1 || type_event==2)
+      {
         jetP4 = cleanJet;
         tauP4 = cleanTau;
         *jetMonojetId = jetMonojetId_clean;
@@ -228,14 +226,15 @@ Bool_t monojet::Process(Long64_t entry)
         //*jetPuId = jetPuId_clean;
         *tauId = tauId_clean;
         *tauIso = tauIso_clean;
-    }
+	*(TLorentzVector*)((*metP4)[0]) = fakeMET;
+      }
     
-    
-    // skim and fill both trees;
-    if(((TLorentzVector*)((*metP4)[0]))->Pt() > 100.){
-        tm ->TreeFill();
-        eventstree->Fill();
-    }
+    // final skim
+    if(((TLorentzVector*)((*metP4)[0]))->Pt() < 100.) return kTRUE;
+      
+    // and fill both trees;
+    tm ->TreeFill();
+    eventstree->Fill();
 
     return kTRUE;
 }
@@ -271,4 +270,9 @@ float monojet::deltaPhi(float phi1, float phi2){
 
 float monojet::deltaR(TLorentzVector *a, TLorentzVector *b){
     return TMath::Sqrt( (a->Eta() - b->Eta()) * (a->Eta() - b->Eta()) + ( deltaPhi(a->Phi(),b->Phi()) ) * ( deltaPhi(a->Phi(),b->Phi()) ) );
+}
+
+float monojet::transverseMass(float lepPt, float lepPhi, float met,  float metPhi) {
+  double cosDPhi = cos(deltaPhi(lepPhi,metPhi));
+  return sqrt(2*lepPt*met*(1-cosDPhi));
 }

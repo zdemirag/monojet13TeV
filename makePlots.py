@@ -8,145 +8,17 @@ from ROOT import *
 from math import *
 from tdrStyle import *
 from selection import build_selection
+from datacard import dump_datacard
+from pretty import plot_ratio, plot_cms
 
 setTDRStyle()
-gROOT.Macro('functions.C')
+gROOT.LoadMacro("functions.C+");
 
 print "Starting Plotting Be Patient!"
 
-lumi = 19.72
-
-def dump_datacard(channel,yields_dic):
-    nprocess = 0
-    yields_slim = {}
-    for process in yields_dic.keys():
-        nprocess += 1
-        if process not in 'data' and process not in 'signal_higgs':
-            yields_slim[process]=yields_dic[process]
-            
-    datacard = open('datacard_'+channel+'.txt', 'w')
-    datacard.write('')
-    datacard.write( 'imax 1 number of bins \n') 
-    datacard.write( 'jmax '+str(nprocess-2)+' number of processes minus 1 \n') # -1 for data
-    datacard.write( 'kmax * number of nuisance parameters \n')
-    datacard.write( '----------------------------------------------------------------------------------------------------------------------------------------------\n')
-    datacard.write( 'shapes * '+channel+' FAKE \n')
-    datacard.write( '----------------------------------------------------------------------------------------------------------------------------------------------\n')
-    datacard.write('bin                 ' +channel+'\n')
-    datacard.write('observation         ' +str(yields_dic['data']) + '\n')
-    datacard.write( '----------------------------------------------------------------------------------------------------------------------------------------------\n')
-    datacard.write('{0:40s}'.format('bin'))
-    for process in yields_dic.keys():
-        if process not in 'data':
-            datacard.write('{0:20s}'.format(channel))
-    datacard.write('\n')
-    datacard.write('{0:40s}'.format('process'))
-    datacard.write('{0:20s}'.format('signal_higgs'))
-    for process in yields_slim.keys():
-        datacard.write('{0:20s}'.format(process))
-    datacard.write('\n')
-    datacard.write('{0:21s}'.format('process'))
-    datacard.write('{0:20d}'.format(0))
-    for num, process in enumerate(yields_slim.keys()):
-        datacard.write('{0:20d}'.format(num+1))
-    datacard.write('\n')
-    datacard.write('{0:21s}'.format('rate'))
-    datacard.write('{0:20.3f}'.format(yields_dic['signal_higgs']))
-    for process in yields_slim.keys():
-        datacard.write('{0:20.3f}'.format(yields_dic[process]))
-    datacard.write('\n')
-    datacard.write( '----------------------------------------------------------------------------------------------------------------------------------------------\n')
-    datacard.write('{0:20s}'.format('syst_'+channel+'_bkg'))
-    datacard.write('{0:20s}'.format('lnN'))
-    for process in yields_dic.keys():        
-        if process not in 'data':
-            datacard.write('{0:20s}'.format('-'))
-    datacard.write('\n')
-    datacard.write('{0:20s}'.format('syst_'+channel+'_sig'))
-    datacard.write('{0:20s}'.format('lnN'))
-    for process in yields_dic.keys():
-        if process not in 'data':
-            datacard.write('{0:20s}'.format('-'))
-    datacard.write('\n')
-    datacard.write('{0:20s}'.format('syst_Zjets_norm'))
-    datacard.write('{0:20s}'.format('lnU'))
-    for process in yields_dic.keys():
-        if process not in 'data':
-            datacard.write('{0:20s}'.format('-'))
-    datacard.write('\n') 
-    datacard.write('{0:20s}'.format('syst_WJets_norm'))
-    datacard.write('{0:20s}'.format('lnU'))
-    for process in yields_dic.keys():
-        if process not in 'data':
-            datacard.write('{0:20s}'.format('-'))
-    datacard.write('\n') 
-    datacard.close()
-
-def plot_ratio(pull,data,mc,bin,xlabel):
-
-    Pull = data
-    #Pull.Add(mc,-1)
-    Pull.GetXaxis().SetTitle(xlabel)
-    Pull.GetYaxis().SetTitleSize(0.04)
-    Pull.GetYaxis().SetNdivisions(5)
-    Pull.SetMarkerStyle(20)
-    Pull.SetMarkerSize(0.8)
-
-    if pull:
-        print 'Plotting the pulls'
-        for i in range(bin):
-            i += 1
-            if data.GetBinContent(i) != 0 :
-                Pull.SetBinContent(i,Pull.GetBinContent(i)/Pull.GetBinError(i))
-            else: Pull.SetBinContent(i,0)
-
-        Pull.SetMaximum(5.0 )
-        Pull.SetMinimum(-5.0)
-        Pull.SetFillColor(2)
-        Pull.GetYaxis().SetTitle('#sigma(Data-MC)')
-        Pull.Draw("HIST")
-
-    else:
-        print 'Plotting the ratio'
-        Pull.Divide(mc)
-        Pull.SetMaximum(2)
-        Pull.SetMinimum(0)
-        Pull.GetYaxis().SetTitle('Data/Bkg.')
-        Pull.SetMarkerColor(1)
-        Pull.SetLineColor(1)
-        Pull.Draw("e")
-
-
-def plot_cms(preliminary,lumi):
-    latex2 = TLatex()
-    latex2.SetNDC()
-    latex2.SetTextSize(0.035)
-    latex2.SetTextAlign(31) # align right
-    latex2.DrawLatex(0.87, 0.95, str(lumi)+" fb^{-1} (8 TeV)");
-
-    latex3 = TLatex()
-    latex3.SetNDC()
-    latex3.SetTextSize(0.75*c4.GetTopMargin())
-    latex3.SetTextFont(62)
-    latex3.SetTextAlign(11) # align right
-    latex3.DrawLatex(0.22, 0.85, "CMS");
-    latex3.SetTextSize(0.5*c4.GetTopMargin())
-    latex3.SetTextFont(52)
-    latex3.SetTextAlign(11)
-    if(preliminary):
-        latex3.DrawLatex(0.20, 0.8, "Preliminary");
-
-def update_var(ch,var):
-    return {
-        'signal':  var,
-        'Zll'   :  var+'CorZ',
-        'Wln'   :  var+'CorW',
-    }[ch]
+lumi = 40.02
 
 def plot_stack(channel, name,var, bin, low, high, ylabel, xlabel, setLog = False):
-
-    if var.startswith('met'):
-        var = update_var(channel,var)
 
     folder = 'test'
     yield_Zll = {}
@@ -158,7 +30,7 @@ def plot_stack(channel, name,var, bin, low, high, ylabel, xlabel, setLog = False
     added.Sumw2()
 
     Variables = {}    
-    cut_standard= build_selection(channel,500)
+    cut_standard= build_selection(channel,200)
     print "Channel is: ", channel, " variable is: ", var, " Selection is: ", cut_standard,"\n"
 
     reordered_physics_processes = []
@@ -171,13 +43,43 @@ def plot_stack(channel, name,var, bin, low, high, ylabel, xlabel, setLog = False
         Variables[Type] = TH1F(histName, histName, bin, low, high)
         Variables[Type].Sumw2()
 
+        all_tree   = makeTrees(Type,"all",channel)
+        n_allentries = all_tree.GetEntries()
+        #print 'INFO - Input all entries: ' + str(n_allentries) + ' for sample: '+ Type
+        ## Get total number of entries
+        total = 0.0
+        for i in range(0,n_allentries):
+            all_tree.GetEntry(i)
+            tmp = all_tree.mcWeight
+            if tmp > 0: tmp = 1.0
+            else: tmp = -1.0
+            total += tmp
+        #print Type, "total mcWeight in all tree in the given ntuples" , total        
+
+        input_tree   = makeTrees(Type,"events",channel)
+        n_entries = input_tree.GetEntries()
+        seentotal = 0.0
+        # Loop over the entries
+        # Maybe we can optimize this by saving it in the slimmer
+        for ientry in range(0,n_entries):
+            # Grab the n'th entry
+            input_tree.GetEntry(ientry)
+            tmp = input_tree.mcWeight
+            if tmp > 0: tmp = 1.0
+            else: tmp = -1.0
+            seentotal += tmp
+        #print Type, "total mcWeight in events tree in the given ntuples" , seentotal        
+
+        weight = seentotal * float(lumi)*physics_processes[Type]['xsec']/total
+        #print "weight", weight, "seentotal", seentotal, "lumi", lumi, physics_processes[Type]['xsec'], total
+
         if Type.startswith('QCD') or Type.startswith('Zll') or \
         Type.startswith('others') or Type.startswith('Wlv') or \
         Type.startswith('Zvv'):
 
             Variables[Type].SetFillColor(physics_processes[Type]['color'])
             Variables[Type].SetLineColor(physics_processes[Type]['color'])
-            makeTrees(Type,tree,channel).Draw(var + " >> " + histName,"(" + cut_standard + ")* weight","goff")
+            makeTrees(Type,'events',channel).Draw(var + " >> " + histName,"(" + cut_standard + ")*" +str(weight),"goff")
             Variables[Type].Scale(float(lumi)*1000)
             stack.Add(Variables[Type],"hist")
             added.Add(Variables[Type])
@@ -186,23 +88,23 @@ def plot_stack(channel, name,var, bin, low, high, ylabel, xlabel, setLog = False
             Variables[Type].SetLineColor(1)
             Variables[Type].SetLineWidth(3)
             Variables[Type].SetLineStyle(8)
-            makeTrees(Type,channel).Draw(var + " >> " + histName,"(" + cut_standard + ")* weight","goff")
+            makeTrees(Type,"events",channel).Draw(var + " >> " + histName,"(" + cut_standard + ")*"+str(weight),"goff")
             Variables[Type].Scale(float(lumi)*1000)
                         
         if Type.startswith("data"):
             Variables[Type].SetMarkerStyle(20)
-            makeTrees(Type,channel).Draw(var + " >> " + histName,  "(" + cut_standard + " ) * weight"   , "goff")
+            makeTrees(Type,"events",channel).Draw(var + " >> " + histName,  "(" + cut_standard + ")*"+str(weight), "goff")
         
         yield_dic[Type] = round(Variables[Type].Integral(),3)
 
     dump_datacard(channel,yield_dic)
 
-    added.Write()
+    #added.Write()
 
     legend = TLegend(.60,.60,.92,.92)
     for process in  ordered_physics_processes:
         Variables[process].SetTitle(process)
-        Variables[process].Write()
+        #Variables[process].Write()
         if process is not 'data':
             legend . AddEntry(Variables[process],physics_processes[process]['label'] , "f")
         else:
@@ -255,9 +157,6 @@ def plot_stack(channel, name,var, bin, low, high, ylabel, xlabel, setLog = False
 
     c4.SaveAs(folder+'/Histo_' + name + '_'+channel+'.pdf')
 
-    #f.Write()
-    f.Close()
-
     del Variables
     del var
     c4.IsA().Destructor( c4 )
@@ -265,24 +164,21 @@ def plot_stack(channel, name,var, bin, low, high, ylabel, xlabel, setLog = False
 
 arguments = {}
 #                = [var, bin, low, high, yaxis, xaxis, setLog]
-arguments['met']    = ['met','met',16,200,1000,'Events/50 GeV','E_{T}^{miss} [GeV]',True]
+arguments['met']    = ['met','metP4[0].Pt()',16,200,1000,'Events/50 GeV','E_{T}^{miss} [GeV]',True]
 arguments['metRaw'] = ['metRaw','metRaw',16,200,1000,'Events/50 GeV','Raw E_{T}^{miss} [GeV]',True]
 arguments['genmet'] = ['genmet','genmet',16,200,1000,'Events/50 GeV','Generated E_{T}^{miss} [GeV]',True]
 arguments['jetpt']  = ['jetpt','jet1.pt()',17,150,1000,'Events/50 GeV','Leading Jet P_{T} [GeV]',True]
 arguments['njets']  = ['njets','njets',3,1,4,'Events','Number of Jets',True]
 
-channel_list  = ['signal','Wln','Zll']
-#channel_list  = ['Zll']
+#channel_list = ['signal']
+#channel_list  = ['signal','Wln','Zll']
+channel_list  = ['Zll','Wln']
 #variable_list = ['met','jetpt','njets','metRaw','genmet']
 processes     = []
 
 variable_list = ['met']
 
 for channel in channel_list:
-    f =TFile("monojet_"+channel+".root","RECREATE")
-    f.cd('..')
-    f.mkdir(channel)
-    f.cd(channel)
     for var in variable_list:
         arguments[var].insert(0,channel)
         print  arguments[var]

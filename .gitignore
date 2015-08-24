@@ -2,3 +2,8 @@
 *.so
 *.root
 *.txt
+*_C.*
+*_cc.*
+*.pcm
+#*
+*.pyc

@@ -1,6 +1,6 @@
-functions(){
-  cout<<"load some functions.."<<endl;
-}
+//functions(){
+//  std::cout<<"load some functions.."<<std::endl;
+//}
 
 float deltaPhi(float phi1, float phi2) {
   float PHI = fabs(phi1-phi2);
@@ -11,7 +11,7 @@ float deltaPhi(float phi1, float phi2) {
 }
 
 float deltaR(float phi1, float eta1, float phi2, float eta2) {
-  return sqrt((eta2-eta1)**2+deltaPhi(phi1,phi2)**2);
+  return sqrt((eta2-eta1)*(eta2-eta1)+deltaPhi(phi1,phi2)*+deltaPhi(phi1,phi2));
 }
 
 
@@ -34,8 +34,8 @@ float vectorSum3Pt(float pt1, float phi1, float pt2, float phi2,float pt3, float
 }
 
 float vectorSumMass(float px1, float py1, float pz1, float px2, float py2, float pz2) {
-  double E1 = sqrt(px1**2 + py1**2 + pz1**2);
-  double E2 = sqrt(px2**2 + py2**2 + pz2**2);
+  double E1 = sqrt(px1*px1 + py1*py1 + pz1*pz1);
+  double E2 = sqrt(px2*px2 + py2*py2 + pz2*pz2);
   double cosTheta = (px1*px2 + py1*py2 + pz1*pz2)/ (E1*E2);
   return sqrt(2*E1*E2*(1-cosTheta));
 }

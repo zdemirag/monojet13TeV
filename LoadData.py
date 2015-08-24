@@ -8,7 +8,7 @@ lumi = 1.0
 
 ######################################################
 
-dataDir = "/Users/zeynepdemiragli/CMS/MonoJET/Testing_Code/plotter/"
+dataDir = "/home/zdemirag/cms/monojet/run2/monojet13TeV/slimmer/"
 
 physics_processes = {
     'Zll': { 'label':'Z#rightarrow ll',
@@ -45,7 +45,8 @@ physics_processes = {
             },
    'signal_higgs': { 'label':'Higgs',
 		     'color' : 1,
-		     'ordering': 6,                  
+		     'ordering': 6,
+		     'xsec' : 1.0,
                      'files':[dataDir+'monojet_dy.root',],
                      },
    'data': { 'label':'data',
@@ -69,6 +70,8 @@ def makeTrees(process,tree,channel):
 	Trees[process] = TChain(tree)
 	for sample in  physics_processes[process]['files']:
 		Trees[process].Add(sample)
+		Trees[process].AddFriend("type",sample)
+		#print process, sample
 	return Trees[process]
 
 ######################################################
