@@ -14,3 +14,10 @@ To run do:
 ```
 
 Make sure you have a directory called /test where the output histograms will be written to.
+
+
+To-Do List:
+
+1) Add trigger info to the slimmer/skimmer
+2) Add met + Z or W to the slimmer/skimmer
+3) Write a preliminary selector/plotter that selects events with Jet > 100 GeV
