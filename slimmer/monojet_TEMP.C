@@ -20,17 +20,10 @@ void monojet::Begin(TTree *tree)
 
    // Get total weight from all
    TFile   *inFile         = tree->GetCurrentFile();
-   TTree   *allTree        = (TTree*)inFile->Get("nero/all");
-    
-   allTree->SetBranchAddress("mcWeight", &mcWeight);
-   allTree->SetBranchAddress("puTrueInt", &puTrueInt);
-   allTree->GetEntry();
 
-   histoFile = new TFile("monojet_dy.root","RECREATE");
+   histoFile = new TFile("monojet_SUFFIX.root","RECREATE");
    histoFile->cd();
     
-   clonetree = allTree->CloneTree();
-
    tree->SetBranchStatus("*",0);
    tree->SetBranchStatus("isRealData",1);
    tree->SetBranchStatus("runNum",1);
@@ -64,6 +57,7 @@ void monojet::Begin(TTree *tree)
    tm->AddVar("uperp","float");
    tm->AddVar("mt","float");
    tm->AddVar("n_tightlep","int");
+   //tm->AddVar("weight","int");
 
    tm->InitVars();
     
@@ -83,7 +77,7 @@ Bool_t monojet::Process(Long64_t entry)
 {
     GetEntry(entry);
 
-    if( entry % 5000 == 0 ) cout << "Processing event number: " << entry << endl;
+    if( entry % 100000 == 0 ) cout << "Processing event number: " << entry << endl;
     //cout << "Processing event number: " << entry << endl;
 
     // To make the processing fast, apply a very looose selection
@@ -231,7 +225,12 @@ Bool_t monojet::Process(Long64_t entry)
     
     // final skim
     if(((TLorentzVector*)((*metP4)[0]))->Pt() < 100.) return kTRUE;
-      
+
+    //re-write the mc weight content to be +1 or -1
+    if(mcWeight < 0) mcWeight = -1.0;
+    if(mcWeight > 0) mcWeight =  1.0;
+
+
     // and fill both trees;
     tm ->TreeFill();
     eventstree->Fill();
@@ -254,10 +253,13 @@ void monojet::Terminate()
    // the results graphically or save the results to file.
 
     histoFile->cd();
-    clonetree->Write();
     tm->TreeWrite();
     eventstree->Write();
+
+    histoFile->SaveSelf(kTRUE);
     histoFile->Close();
+
+
 }
 
 float monojet::deltaPhi(float phi1, float phi2){

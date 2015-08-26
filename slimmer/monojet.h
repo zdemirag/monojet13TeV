@@ -76,6 +76,8 @@ public :
    vector<int>     *jetGrMotherPdgId;
    vector<bool>    *jetMonojetId;
    vector<bool>    *jetMonojetIdLoose;
+   vector<float>   *jetQ;
+   vector<float>   *jetQnoPU;
    TClonesArray    *fatjetP4;
    vector<float>   *fatjetRawPt;
    vector<int>     *fatjetFlavour;
@@ -103,14 +105,11 @@ public :
    vector<float>   *metPtJESUP;
    vector<float>   *metPtJESDOWN;
    TClonesArray    *metP4_GEN;
-   Float_t         metNoMu;
-   Float_t         phiNoMu;
-   Float_t         metChargedHadron;
-   Float_t         phiChargedHadron;
-   Float_t         metNeutralHadron;
-   Float_t         phiNeutralHadron;
-   Float_t         metNeutralEM;
-   Float_t         phiNeutralEM;
+   TLorentzVector  *metNoMu;
+   TLorentzVector  *pfMet_e3p0;
+   TLorentzVector  *metChargedHadron;
+   TLorentzVector  *metNeutralHadron;
+   TLorentzVector  *metNeutralEM;
    TClonesArray    *genP4;
    TClonesArray    *genjetP4;
    vector<int>     *genPdgId;
@@ -129,6 +128,15 @@ public :
    vector<float>   *photonSieie;
    vector<int>     *photonTightId;
    vector<int>     *photonMediumId;
+   vector<int>     *photonLooseId;
+   vector<float>   *photonChIso;
+   vector<float>   *photonChIsoRC;
+   vector<float>   *photonNhIso;
+   vector<float>   *photonNhIsoRC;
+   vector<float>   *photonPhoIso;
+   vector<float>   *photonPhoIsoRC;
+   vector<float>   *photonPuIso;
+   vector<float>   *photonPuIsoRC;
    TClonesArray    *tauP4;
    vector<float>   *tauId;
    vector<int>     *tauQ;
@@ -161,6 +169,8 @@ public :
    TBranch        *b_jetGrMotherPdgId;   //!
    TBranch        *b_jetMonojetId;   //!
    TBranch        *b_jetMonojetIdLoose;   //!
+   TBranch        *b_jetQ;   //!
+   TBranch        *b_jetQnoPU;   //!
    TBranch        *b_fatjetP4;   //!
    TBranch        *b_fatjetRawPt;   //!
    TBranch        *b_fatjetFlavour;   //!
@@ -189,13 +199,10 @@ public :
    TBranch        *b_metPtJESDOWN;   //!
    TBranch        *b_metP4_GEN;   //!
    TBranch        *b_metNoMu;   //!
-   TBranch        *b_phiNoMu;   //!
+   TBranch        *b_pfMet_e3p0;   //!
    TBranch        *b_metChargedHadron;   //!
-   TBranch        *b_phiChargedHadron;   //!
    TBranch        *b_metNeutralHadron;   //!
-   TBranch        *b_phiNeutralHadron;   //!
    TBranch        *b_metNeutralEM;   //!
-   TBranch        *b_phiNeutralEM;   //!
    TBranch        *b_genP4;   //!
    TBranch        *b_genjetP4;   //!
    TBranch        *b_genPdgId;   //!
@@ -214,6 +221,15 @@ public :
    TBranch        *b_photonSieie;   //!
    TBranch        *b_photonTightId;   //!
    TBranch        *b_photonMediumId;   //!
+   TBranch        *b_photonLooseId;   //!
+   TBranch        *b_photonChIso;   //!
+   TBranch        *b_photonChIsoRC;   //!
+   TBranch        *b_photonNhIso;   //!
+   TBranch        *b_photonNhIsoRC;   //!
+   TBranch        *b_photonPhoIso;   //!
+   TBranch        *b_photonPhoIsoRC;   //!
+   TBranch        *b_photonPuIso;   //!
+   TBranch        *b_photonPuIsoRC;   //!
    TBranch        *b_tauP4;   //!
    TBranch        *b_tauId;   //!
    TBranch        *b_tauQ;   //!
@@ -286,6 +302,8 @@ void monojet::Init(TTree *tree)
    jetGrMotherPdgId = 0;
    jetMonojetId = 0;
    jetMonojetIdLoose = 0;
+   jetQ = 0;
+   jetQnoPU = 0;
    fatjetP4 = 0;
    fatjetRawPt = 0;
    fatjetFlavour = 0;
@@ -313,6 +331,11 @@ void monojet::Init(TTree *tree)
    metPtJESUP = 0;
    metPtJESDOWN = 0;
    metP4_GEN = 0;
+   metNoMu = 0;
+   pfMet_e3p0 = 0;
+   metChargedHadron = 0;
+   metNeutralHadron = 0;
+   metNeutralEM = 0;
    genP4 = 0;
    genjetP4 = 0;
    genPdgId = 0;
@@ -321,6 +344,15 @@ void monojet::Init(TTree *tree)
    photonSieie = 0;
    photonTightId = 0;
    photonMediumId = 0;
+   photonLooseId = 0;
+   photonChIso = 0;
+   photonChIsoRC = 0;
+   photonNhIso = 0;
+   photonNhIsoRC = 0;
+   photonPhoIso = 0;
+   photonPhoIsoRC = 0;
+   photonPuIso = 0;
+   photonPuIsoRC = 0;
    tauP4 = 0;
    tauId = 0;
    tauQ = 0;
@@ -355,6 +387,8 @@ void monojet::Init(TTree *tree)
    fChain->SetBranchAddress("jetGrMotherPdgId", &jetGrMotherPdgId, &b_jetGrMotherPdgId);
    fChain->SetBranchAddress("jetMonojetId", &jetMonojetId, &b_jetMonojetId);
    fChain->SetBranchAddress("jetMonojetIdLoose", &jetMonojetIdLoose, &b_jetMonojetIdLoose);
+   fChain->SetBranchAddress("jetQ", &jetQ, &b_jetQ);
+   fChain->SetBranchAddress("jetQnoPU", &jetQnoPU, &b_jetQnoPU);
    fChain->SetBranchAddress("fatjetP4", &fatjetP4, &b_fatjetP4);
    fChain->SetBranchAddress("fatjetRawPt", &fatjetRawPt, &b_fatjetRawPt);
    fChain->SetBranchAddress("fatjetFlavour", &fatjetFlavour, &b_fatjetFlavour);
@@ -383,13 +417,10 @@ void monojet::Init(TTree *tree)
    fChain->SetBranchAddress("metPtJESDOWN", &metPtJESDOWN, &b_metPtJESDOWN);
    fChain->SetBranchAddress("metP4_GEN", &metP4_GEN, &b_metP4_GEN);
    fChain->SetBranchAddress("metNoMu", &metNoMu, &b_metNoMu);
-   fChain->SetBranchAddress("phiNoMu", &phiNoMu, &b_phiNoMu);
+   fChain->SetBranchAddress("pfMet_e3p0", &pfMet_e3p0, &b_pfMet_e3p0);
    fChain->SetBranchAddress("metChargedHadron", &metChargedHadron, &b_metChargedHadron);
-   fChain->SetBranchAddress("phiChargedHadron", &phiChargedHadron, &b_phiChargedHadron);
    fChain->SetBranchAddress("metNeutralHadron", &metNeutralHadron, &b_metNeutralHadron);
-   fChain->SetBranchAddress("phiNeutralHadron", &phiNeutralHadron, &b_phiNeutralHadron);
    fChain->SetBranchAddress("metNeutralEM", &metNeutralEM, &b_metNeutralEM);
-   fChain->SetBranchAddress("phiNeutralEM", &phiNeutralEM, &b_phiNeutralEM);
    fChain->SetBranchAddress("genP4", &genP4, &b_genP4);
    fChain->SetBranchAddress("genjetP4", &genjetP4, &b_genjetP4);
    fChain->SetBranchAddress("genPdgId", &genPdgId, &b_genPdgId);
@@ -408,6 +439,15 @@ void monojet::Init(TTree *tree)
    fChain->SetBranchAddress("photonSieie", &photonSieie, &b_photonSieie);
    fChain->SetBranchAddress("photonTightId", &photonTightId, &b_photonTightId);
    fChain->SetBranchAddress("photonMediumId", &photonMediumId, &b_photonMediumId);
+   fChain->SetBranchAddress("photonLooseId", &photonLooseId, &b_photonLooseId);
+   fChain->SetBranchAddress("photonChIso", &photonChIso, &b_photonChIso);
+   fChain->SetBranchAddress("photonChIsoRC", &photonChIsoRC, &b_photonChIsoRC);
+   fChain->SetBranchAddress("photonNhIso", &photonNhIso, &b_photonNhIso);
+   fChain->SetBranchAddress("photonNhIsoRC", &photonNhIsoRC, &b_photonNhIsoRC);
+   fChain->SetBranchAddress("photonPhoIso", &photonPhoIso, &b_photonPhoIso);
+   fChain->SetBranchAddress("photonPhoIsoRC", &photonPhoIsoRC, &b_photonPhoIsoRC);
+   fChain->SetBranchAddress("photonPuIso", &photonPuIso, &b_photonPuIso);
+   fChain->SetBranchAddress("photonPuIsoRC", &photonPuIsoRC, &b_photonPuIsoRC);
    fChain->SetBranchAddress("tauP4", &tauP4, &b_tauP4);
    fChain->SetBranchAddress("tauId", &tauId, &b_tauId);
    fChain->SetBranchAddress("tauQ", &tauQ, &b_tauQ);

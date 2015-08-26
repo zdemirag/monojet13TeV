@@ -4,20 +4,20 @@ def build_selection(selection,bin0):
 
     snippets = {
         #** monojet
-        'leading jet pT':['jetP4[0].Pt()>0.',selections],
+        'leading jet pT':['jetP4[0].Pt()>110.',selections],
         #'leading jet eta':['abs(jetP4[0].Eta())<2.4',selections],
-        #'jet cleaning':['jetMonojetId[0]==1',selections],
-        #'trailing jet':['(jet2.pt() <30 || deltaPhi(jet1.Phi(),jet2.Phi())<2)',selections],
-        #'trigger':['((trigger&1)==1 || (trigger&2)==2)',selections],
-        #'lepton veto':['nlep==0',['signal']],
-        #'extra stuff veto':['nphotons==0&&ntaus==0',selections], 
-        #'jet multiplicity':['njets<3',selections],
+        'jet cleaning':['jetMonojetId[0]==1',selections],
+        #'trailing jet':['(jetP4[1].Pt() < 30 || deltaPhi(jetP4[0].Phi(),jetP4[1].Phi())<2)',selections],
+        'jet multiplicity':['@jetP4.size()<3',selections],
+        'deltaPhi':['deltaPhi(jetP4[0].Phi(),metP4[0].Phi())>0.4',selections],
+        #'trigger':['(triggerFired[0]==1 || triggerFired[1]==1)',selections],
+        'lepton veto':['@lepP4.size()==0',['signal']],
+        'extra stuff veto':['@photonP4.size()==0&&@tauP4.size()==0',selections], 
 
         #** Control Regions
         'leading lep ID': ['n_tightlep==1',['Wln','Zll']],
         #'leading muon Iso': ['lep1IsIsolated',['Wln']],
-        'Zmm':['@lepP4.size()==2 && ((lepPdgId)[0]*(lepPdgId)[1])== -169 ',['Zll']],
-        #&& abs(vectorSumMass(lepP4[0].Px(),lepP4[0].Py(),lepP4[0].Pz(),lepP4[1].Px(),lepP4[1].Py(),lepP4[1].Pz())-91)<30',['Zll']],
+        'Zmm':['@lepP4.size()==2 && ((lepPdgId)[0]*(lepPdgId)[1])== -169 && abs(vectorSumMass(lepP4[0].Px(),lepP4[0].Py(),lepP4[0].Pz(),lepP4[1].Px(),lepP4[1].Py(),lepP4[1].Pz())-91)<30',['Zll']],
         #'dilepPt':['vectorSumPt(lepP4[0].Pt(),lepP4[0].Phi(),lepP4[1].Pt(),lepP4[2].Phi())>100',['Zll']],
         'Wln':['@lepP4.size()==1 && abs((lepPdgId)[0])==13 && mt > 50.',['Wln']],
         }
