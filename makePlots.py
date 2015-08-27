@@ -96,6 +96,7 @@ def plot_stack(channel, name,var, bin, low, high, ylabel, xlabel, setLog = False
     print 'INFO - Drawing the Legend', datetime.datetime.fromtimestamp( time.time())
 
 
+
     legend = TLegend(.60,.60,.92,.92)
     for process in  ordered_physics_processes:
         Variables[process].SetTitle(process)

@@ -68,7 +68,7 @@ physics_processes = {
                           'color' : 1,
                           'ordering': 6,
                           'xsec' : 0.0,
-                          'files':[dataDir+'monojet_met.root',],
+                          'files':[dataDir+'monojet_met_jsn.root',],
                           },
         'data': { 'label':'data',
                   'color': 1,

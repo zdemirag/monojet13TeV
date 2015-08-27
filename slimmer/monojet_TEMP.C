@@ -119,7 +119,7 @@ Bool_t monojet::Process(Long64_t entry)
         //iso_1 = divide(input_tree.lepIso[0],input_tree.lepP4[0].Pt())
         //if (input_tree.lepTightId[0]==0 or iso_1 > 0.12): continue
 
-        if (Lepton->Pt() > 20. && (*lepTightId)[lepton] == 1){
+        if (Lepton->Pt() > 20. && (*lepTightId)[lepton] > 1){
             n_tightlep +=1;
             new ( (*tightLep)[tightLep->GetEntriesFast()]) TLorentzVector(Lepton->Px(), Lepton->Py(), Lepton->Pz(), Lepton->Energy());            
             
