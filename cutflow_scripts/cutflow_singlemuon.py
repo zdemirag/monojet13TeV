@@ -39,7 +39,7 @@ else:
 
 #initialize 
 n_njet=0; n_nmet=0; n_njetid=0; n_nlep=0; n_ntau=0; n_npho=0; n_dphi=0; n_nbjet=0; 
-nleptight=0; n_nlepveto=0;n_nleptight=0;
+nleptight=0; n_nlepveto=0;n_nleptight=0; n_nmindphi=0; n_outaccp=0;
 
 # Check the number of entries in the tree
 n_entries = input_tree.GetEntriesFast()
@@ -86,15 +86,21 @@ for ientry in range(0,n_entries):
     continue
   n_nmet += 1
   
-  #print input_tree.runNum, input_tree.lumiNum, input_tree.eventNum, input_tree.jet1Pt
-
   if not (input_tree.jet1Pt > 100):
     continue
   n_njet += 1
 
-  if not (input_tree.jet1isMonoJetId == 1):
+  if not (input_tree.jet1isMonoJetIdNew == 1):
     continue
   n_njetid += 1
+
+  if not (input_tree.minJetMetDPhi_withendcap > 0.5):
+    continue
+  n_nmindphi += 1
+
+  if not (input_tree.leadingJet_outaccp == 0):
+    continue
+  n_outaccp += 1
 
 
 print 'INFO - Single Muon Cut Flow Chart: '
@@ -108,3 +114,5 @@ print 'INFO - Nbjet          '+ str(n_nbjet)
 print 'INFO - Met Cut        '+ str(n_nmet)
 print 'INFO - Jet Cut        '+ str(n_njet)
 print 'INFO - Jet Id Cut     '+ str(n_njetid)
+print 'INFO - DPhi Cut        '+ str(n_nmindphi)
+print 'INFO - Jet out of accp '+ str(n_outaccp)

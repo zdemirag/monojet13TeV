@@ -38,7 +38,7 @@ else:
   raise SystemExit
 
 #initialize 
-n_njet=0; n_nmet=0; n_njetid=0; n_nlep=0; n_ntau=0; n_npho=0; n_dphi=0; n_nbjet=0; n_nmindphi=0;
+n_njet=0; n_nmet=0; n_njetid=0; n_nlep=0; n_ntau=0; n_npho=0; n_dphi=0; n_nbjet=0; n_nmindphi=0; n_outaccp=0;
 
 # Check the number of entries in the tree
 n_entries = input_tree.GetEntriesFast()
@@ -56,11 +56,14 @@ for ientry in range(0,n_entries):
   input_tree.GetEntry(ientry)
 
   #print 'INFO ------------------------ Event '+str(ientry)+' ------------------------ '
-
   if not (input_tree.n_looselep == 0):
     continue
   n_nlep += 1
 
+  if not (input_tree.n_tau == 0):
+    continue
+  n_ntau += 1
+  
   if not (input_tree.n_loosepho == 0):
     continue
   n_npho += 1
@@ -81,21 +84,23 @@ for ientry in range(0,n_entries):
     continue
   n_njetid += 1
 
-  if not (input_tree.minJetMetDPhi > 0.5):
+  if not (input_tree.minJetMetDPhi_withendcap > 0.5):
     continue
   n_nmindphi += 1
 
-  if not (input_tree.n_tau == 0):
+  if not (input_tree.leadingJet_outaccp == 0):
     continue
-  n_ntau += 1
-  
+  n_outaccp += 1
+
+
 print 'INFO - Signal Cut Flow Chart: '
 print 'INFO - Full     '+ str(n_entries)
 print 'INFO - NLep Cut '+ str(n_nlep)
+print 'INFO - NTau Cut '+ str(n_ntau)
 print 'INFO - NPho Cut '+ str(n_npho)
 print 'INFO - Nbjet    '+ str(n_nbjet)
 print 'INFO - Met Cut  '+ str(n_nmet)
 print 'INFO - Jet Cut  '+ str(n_njet)
 print 'INFO - Jet Id Cut  '+ str(n_njetid)
 print 'INFO - DPhi Cut '+ str(n_nmindphi)
-print 'INFO - NTau Cut '+ str(n_ntau)
+print 'INFO - Jet out of accp '+ str(n_outaccp)

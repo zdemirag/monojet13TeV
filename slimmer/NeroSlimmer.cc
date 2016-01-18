@@ -398,7 +398,7 @@ void NeroSlimmer(TString inFileName, TString outFileName) {
     Double_t checkDPhi = 5.0;
     Double_t clean_checkDPhi = 5.0;
 
-    //// Now we go on to clean jets ////
+    //// Now we go on to jets ////
 
     for (Int_t iJet = 0; iJet < inTree->jetP4->GetEntries(); iJet++) {
       TLorentzVector* tempJet = (TLorentzVector*) inTree->jetP4->At(iJet);
@@ -409,17 +409,28 @@ void NeroSlimmer(TString inFileName, TString outFileName) {
            deltaR(tempJet->Phi(),tempJet->Eta(),outTree->lep2Phi,outTree->lep2Phi) < 0.4)) {
         continue;
       }
+      
+      // check for the dphi if the the jet > 30 GeV, and passes loose id and pu jet id and cleaning wrt to the selected leptons
+      if (iJet < 5 && tempJet->Pt() > 30 && (*(inTree->jetPuId))[iJet] > -0.62) {
+          // Clean wrt leptons
+          for (UInt_t iLepton = 0; iLepton < leptonVecs.size(); iLepton++) {
+              if (deltaR(leptonVecs[iLepton]->Phi(),leptonVecs[iLepton]->Eta(),tempJet->Phi(),tempJet->Eta()) < dROverlap) {
+                  // Clean wrt photons
+                  for (UInt_t iPhoton = 0; iPhoton < photonVecs.size(); iPhoton++) {
+                      if (deltaR(photonVecs[iPhoton]->Phi(),photonVecs[iPhoton]->Eta(),tempJet->Phi(),tempJet->Eta()) < dROverlap) {                          
+                          checkDPhi = abs(deltaPhi(tempJet->Phi(),outTree->metPhi));
+                          if (checkDPhi < outTree->minJetMetDPhi_withendcap)
+                              outTree->minJetMetDPhi_withendcap = checkDPhi;                          
+                          checkDPhi = abs(deltaPhi(tempJet->Phi(),outTree->trueMetPhi));
+                          if (checkDPhi < outTree->minJetTrueMetDPhi_withendcap)
+                              outTree->minJetTrueMetDPhi_withendcap = checkDPhi;
+                      }//Photon cleaning
+                  }//Photon loop
+              }//Lepton cleaning
+          }//Lepton loop
+      }//Jet loop
 
-      if (iJet < 5) {
-        checkDPhi = abs(deltaPhi(tempJet->Phi(),outTree->metPhi));
-        if (checkDPhi < outTree->minJetMetDPhi_withendcap)
-          outTree->minJetMetDPhi_withendcap = checkDPhi;
-        
-        checkDPhi = abs(deltaPhi(tempJet->Phi(),outTree->trueMetPhi));
-        if (checkDPhi < outTree->minJetTrueMetDPhi_withendcap)
-          outTree->minJetTrueMetDPhi_withendcap = checkDPhi;
-      }
-
+      // if the leading jet (after all selection) has eta > 2.5 then remove the event
       if (iJet == 0 && fabs(tempJet->Eta()) > 2.5)
         outTree->leadingJet_outaccp = 1;
 
@@ -432,6 +443,7 @@ void NeroSlimmer(TString inFileName, TString outFileName) {
       if (tempJet->Pt() > 15.0 && (*(inTree->jetBdiscr))[iJet] > bCutTight)
         outTree->n_bjetsTight++;
 
+      // clean it wrt to loose muons / electrons / photons
       if (tempJet->Pt() > 15.0 && (*(inTree->jetBdiscr))[iJet] > bCutMedium) {
         float dR_1 = deltaR(outTree->lep1Phi, outTree->lep1Eta, tempJet->Phi(),tempJet->Eta());
         float dR_2 = deltaR(outTree->lep2Phi, outTree->lep2Eta, tempJet->Phi(),tempJet->Eta());
@@ -550,7 +562,10 @@ void NeroSlimmer(TString inFileName, TString outFileName) {
 
       if (((*(inTree->tauSelBits))[iTau] & 7) != 7) 
         continue;
-      if ((*(inTree->tauIsoDeltaBetaCorr))[iTau] > 3)
+      //if ((*(inTree->tauIsoDeltaBetaCorr))[iTau] > 3)
+      //if ((*(inTree->tauIsoDeltaBetaCorr))[iTau] > 5)
+      //if ((*(inTree->tauIsoDeltaBetaCorr))[iTau] > 4)
+      if ((*(inTree->tauIsoDeltaBetaCorr))[iTau] > 4.5)
         continue;
 
       //// Now do cleaning ////
